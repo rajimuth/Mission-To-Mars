@@ -22,6 +22,7 @@ def scrape_all():
         "news_paragraph": news_paragraph,
         "featured_image": featured_image(browser),
         "facts": mars_facts(),
+        "hemispheres":hemi_facts(browser),
         "last_modified": dt.datetime.now()
     }
 
@@ -99,6 +100,45 @@ def mars_facts():
 
     # Convert dataframe into HTML format, add bootstrap
     return df.to_html(classes="table table-striped")
+
+
+def hemi_facts(browser):
+    # Visit URL
+    url = 'https://marshemispheres.com/'
+    browser.visit(url)
+
+    # Parse the resulting html with soup
+    html = browser.html
+    hemi_soup = soup(html, 'html.parser')
+
+    
+
+    # Add try/except for error handling
+    try:
+        # Create a list to hold the images and titles.
+        hemisphere_image_urls = []
+        trs = hemi_soup.find_all('h3')
+        for index,tr in enumerate(trs):
+            i=0
+            # for i in range(4):
+            if index<4:
+                hemisphere={}
+                text=tr.get_text()        
+                browser.find_by_css("a.product-item h3")[index].click()
+                html = browser.html
+                img_soup = soup(html, 'html.parser')
+                sample_elem = img_soup.find('img',class_='wide-image')
+                hemi_url = sample_elem.get('src')
+                hemi_abs_url=f'https://marshemispheres.com/{hemi_url}'
+                hemisphere["title"] = text
+                hemisphere["url"]=hemi_abs_url
+                hemisphere_image_urls.append(hemisphere)
+                i=i+1
+                browser.back()
+    except AttributeError:
+        return None, None
+
+    return hemisphere_image_urls                
 
 if __name__ == "__main__":
 
